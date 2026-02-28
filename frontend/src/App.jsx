@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useRef } from "react";
 
 function App() {
   const [formData, setFormData] = useState({
@@ -62,6 +62,22 @@ function App() {
 
     setLoading(false);
   };
+  const resultRef = useRef(null);
+
+  const speakResult = () => {
+    if (!resultRef.current) return;
+
+    const text = resultRef.current.innerText; // gets all visible text
+
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = "en-US";
+    speech.rate = 1;
+
+    window.speechSynthesis.cancel(); // stop previous speech
+    window.speechSynthesis.speak(speech);
+  };
+  const pauseSpeech = () => window.speechSynthesis.pause();
+const resumeSpeech = () => window.speechSynthesis.resume();
 
   return (
     <div style={styles.container}>
@@ -85,10 +101,9 @@ function App() {
       </form>
 
       {loading && <p>Generating Plan...</p>}
-
       {plan && (
-        <div style={styles.card}>
-
+        <div>
+        <div style={styles.card} ref={resultRef}>
           <h2>User Summary</h2>
           <p>Age: {plan.userSummary.age}</p>
           <p>Gender: {plan.userSummary.gender}</p>
@@ -123,6 +138,13 @@ function App() {
           </ul>
 
         </div>
+        <div style={{display:"flex",flexDirection:"row",alignItems:"center", justifyContent:"space-around" , maxWidth:"400px", margin:"20px auto"}}>
+        <button style={styles.button} onClick={speakResult}>Read Full Plan</button><br />
+        <button style={styles.button} onClick={pauseSpeech}>⏸ Pause</button><br />
+        <button style={styles.button} onClick={resumeSpeech}>▶ Resume</button><br />
+        <button style={styles.button} onClick={() => window.speechSynthesis.cancel()}> Stop</button><br />
+        </div>
+        </div>
       )}
     </div>
   );
@@ -148,10 +170,12 @@ const styles = {
 
   button: {
     padding: "10px",
+    margin:"10px",
     backgroundColor: "#4CAF50",
     color: "white",
     border: "none",
     cursor: "pointer",
+    borderRadius: "5px",
   },
 
   card: {
